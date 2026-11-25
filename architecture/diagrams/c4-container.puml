@@ -1,0 +1,24 @@
+@startuml c4-container
+!include <C4/C4_Container>
+
+title Container Diagram - Mars Rover Simulator
+
+Person(operator, "Mission Operator", "Defines a mission and reads the final position and heading")
+System_Ext(mission, "Mission File", "JSON mission input for local runs")
+System_Ext(client, "HTTP Client", "Submits a mission over HTTPS")
+
+System_Boundary(rover, "Mars Rover Simulator") {
+  Container(cli, "CLI Adapter", "Python 3.12 console entry point", "Reads a mission JSON file, calls the engine and prints the result")
+  Container(api, "HTTP API", "Amazon API Gateway (HTTP API)", "Exposes mission submission over HTTPS")
+  Container(fn, "Lambda Adapter", "Python 3.12 AWS Lambda function", "Parses the request, calls the engine and formats the response")
+  Container(engine, "Navigation Engine", "Python 3.12 package", "Applies F, L and R commands to the rover state")
+}
+
+Rel(operator, cli, "Runs", "CLI")
+Rel(cli, mission, "Reads", "JSON file")
+Rel(operator, client, "Uses")
+Rel(client, api, "Submits a mission", "HTTPS / JSON")
+Rel(api, fn, "Invokes", "proxy integration")
+Rel(cli, engine, "Calls", "in-process Python API")
+Rel(fn, engine, "Calls", "in-process Python API")
+@enduml

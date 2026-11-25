@@ -1,0 +1,31 @@
+@startuml c4-deployment
+!include <C4/C4_Deployment>
+
+title Deployment Diagram - Mars Rover Simulator
+
+Person(operator, "Mission Operator")
+
+Deployment_Node(aws, "AWS Account", "Selected region, serverless") {
+  Deployment_Node(apigw, "Amazon API Gateway", "HTTP API, managed edge") {
+    Container(api, "Mission Endpoint", "API Gateway route", "Accepts a POST with mission JSON")
+  }
+  Deployment_Node(lambda, "AWS Lambda", "Python 3.12 runtime") {
+    Container(fn, "Lambda Adapter", "Python function", "Parses the request and formats the response")
+    Container(engine_aws, "Navigation Engine", "Python package", "Bundled with the function code")
+  }
+}
+
+Deployment_Node(local, "Developer Machine", "Local Python 3.12") {
+  Container(cli, "CLI Adapter", "Console entry point", "Reads a mission file and prints the result")
+  Container(engine_local, "Navigation Engine", "Python package", "Same code bundled with the CLI")
+}
+
+Container_Ext(logs, "CloudWatch Logs", "Managed log group", "Captures adapter logs")
+
+Rel(operator, cli, "Runs", "CLI")
+Rel(cli, engine_local, "Calls", "in process")
+Rel(operator, api, "Submits missions", "HTTPS / JSON")
+Rel(api, fn, "Invokes", "proxy integration")
+Rel(fn, engine_aws, "Calls", "in process")
+Rel(fn, logs, "Writes logs")
+@enduml

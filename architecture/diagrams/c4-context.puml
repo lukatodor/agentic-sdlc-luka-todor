@@ -5,9 +5,12 @@ title System Context - Mars Rover
 
 Person(operator, "Mission Operator", "Defines the map, the rover start position and the command sequence")
 System(rover, "Mars Rover Simulator", "Executes movement commands on a map with obstacles and reports the final position and heading")
-System_Ext(mission, "Mission File", "Map with obstacles, start position (x, y, heading) and commands")
+System_Ext(mission, "Mission File", "JSON file with map dimensions, obstacles, start position (x, y, heading) and commands")
+System_Ext(client, "HTTP Client", "Sends a mission as JSON over HTTPS and displays the final position and heading")
 
 Rel(operator, mission, "Writes")
-Rel(operator, rover, "Submits missions and reads results", "HTTPS / CLI")
+Rel(operator, rover, "Runs the local CLI adapter", "CLI")
+Rel(operator, client, "Uses")
+Rel(client, rover, "Submits a mission and reads the result", "HTTPS / JSON")
 Rel(rover, mission, "Reads")
 @enduml

@@ -1,0 +1,22 @@
+@startuml sequence-cli-mission
+!include <C4/C4_Sequence>
+
+title Runtime - Execute a Mission from the CLI
+
+Person(operator, "Mission Operator")
+System_Ext(file, "Mission File", "JSON mission input")
+Container(cli, "CLI Adapter", "Python 3.12")
+Container(engine, "Navigation Engine", "Python 3.12")
+
+Rel(operator, cli, "Runs", "CLI")
+Rel(cli, file, "Reads", "JSON file")
+Rel(cli, engine, "execute(mission)", "Python API")
+
+operator -> cli : run with mission file path
+cli -> file : read mission JSON
+file --> cli : mission JSON
+cli -> cli : parse and validate mission
+cli -> engine : execute(mission)
+engine --> cli : final cell and heading
+cli --> operator : print result JSON
+@enduml
