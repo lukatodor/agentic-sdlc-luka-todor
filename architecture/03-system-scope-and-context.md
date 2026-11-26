@@ -46,7 +46,7 @@ the lower-left corner: `x` increases east, `y` increases north, so `N` moves to
 ### Result output
 
 ```json
-{"x": 1, "y": 3, "heading": "E"}
+{"x": 0, "y": 3, "heading": "N"}
 ```
 
 Only the final cell and heading are returned; no trace or history is produced.
