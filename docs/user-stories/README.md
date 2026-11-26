@@ -17,7 +17,7 @@ Story IDs follow `{DOMAIN}-STORY-{N}`, `{DOMAIN}-{FE|BE|INFRA}-{N}.{X}` and `{ST
 | # | ID | Story | Domain | Priority | Status | File |
 |---|----|-------|--------|----------|--------|------|
 | 1 | NAV-STORY-001 | Execute a command sequence and report the final cell and heading | NAV | 🔴 Core | ✅ | [navigation.md](navigation.md) |
-| 2 | NAV-STORY-002 | Skip forward moves blocked by obstacles or the map boundary | NAV | 🔴 Core | ⬜ | |
+| 2 | NAV-STORY-002 | Skip forward moves blocked by obstacles or the map boundary | NAV | 🔴 Core | ✅ | [navigation.md](navigation.md) |
 | 3 | API-STORY-001 | Submit a mission over HTTPS and receive the result | API | 🔴 Core | ⬜ | |
 | 4 | CLI-STORY-001 | Run a mission from a JSON file | CLI | Supporting | ⬜ | |
 | 5 | MISSION-STORY-001 | Reject missions with a start cell or obstacles outside the map or a start cell on an obstacle | MISSION | Supporting | ⬜ | |
@@ -38,5 +38,5 @@ All other stories add input validation, an alternative channel or operations sup
 
 ## Pareto Progress
 
-📊 Pareto Progress: 1/3 core stories (33% of 20% core stories)
-🎯 Core functionality coverage: ~27% of 80% target
+📊 Pareto Progress: 2/3 core stories (67% of 20% core stories)
+🎯 Core functionality coverage: ~53% of 80% target

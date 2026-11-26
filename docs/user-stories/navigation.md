@@ -170,3 +170,165 @@ The CLI is the user-facing interface of this system.
 2. NAV-BE-001.1, NAV-BE-001.2, NAV-BE-001.3
 3. NAV-FE-001.1
 4. NAV-STORY-001 end to end (S1, S2)
+
+---
+
+## NAV-STORY-002: Skip forward moves blocked by obstacles or the map boundary
+
+**Priority:** 🔴 Core
+**Architecture:** `architecture/05-building-block-view.md`, sections 5.2 (Command Executor, Grid Rules) and 5.4; `architecture/06-runtime-view.md`, section 6.3; `architecture/08-cross-cutting-concepts.md`, section 8.5; `architecture/10-quality-requirements.md`, section 10.2 (Q2); ADR-002
+
+AS A mission operator
+I WANT the rover to skip a forward move when an obstacle or the map boundary blocks it
+SO THAT I still get the final cell and heading after the remaining commands
+
+### NAV-STORY-002-S1: Obstacle blocks forward moves and the mission continues
+
+**GIVEN**
+* A map with `width` 5, `height` 4 and an obstacle at `(1, 2)`
+* The rover starts at `x` 1, `y` 1 facing `N`
+
+**WHEN**
+* The mission is executed with the commands `FFR`
+
+**THEN**
+* The result is `{"x": 1, "y": 1, "heading": "E"}`
+
+### NAV-STORY-002-S2: Map boundary blocks forward moves and the mission continues
+
+**GIVEN**
+* A map with `width` 5, `height` 4 and no obstacles
+* The rover starts at `x` 4, `y` 3 facing `N`
+
+**WHEN**
+* The mission is executed with the commands `FFR`
+
+**THEN**
+* The result is `{"x": 4, "y": 3, "heading": "E"}`
+
+### NAV-STORY-002-S3: Blocked forward, turn, then forward moves
+
+**GIVEN**
+* A map with `width` 5, `height` 4 and an obstacle at `(1, 2)`
+* The rover starts at `x` 1, `y` 1 facing `N`
+
+**WHEN**
+* The mission is executed with the commands `FRF`
+
+**THEN**
+* The result is `{"x": 2, "y": 1, "heading": "E"}`
+
+---
+
+## NAV-INFRA-002.1: Package the Navigation Engine with the Lambda function
+
+**Architecture:** `architecture/07-deployment-view.md`, sections 7.2, 7.4 and 7.5; ADR-001
+
+Not applicable: covered by NAV-INFRA-001.1; blocked-move behavior adds no deployment artifact.
+
+## NAV-INFRA-002.2: Data store
+
+**Architecture:** `architecture/05-building-block-view.md`, section 5.1; `architecture/08-cross-cutting-concepts.md`, section 8.5; ADR-001
+
+Not applicable: missions are self-contained and there is no storage container.
+
+## NAV-INFRA-002.3: Event handling
+
+**Architecture:** `architecture/05-building-block-view.md`, section 5.3
+
+Not applicable: adapters call the engine in-process and synchronously; no events are published.
+
+## NAV-INFRA-002.4: Monitoring of engine failures
+
+**Architecture:** `architecture/08-cross-cutting-concepts.md`, section 8.3
+
+Not applicable: covered by NAV-INFRA-001.4; blocked moves are normal no-op behavior, not failures.
+
+---
+
+## NAV-BE-002.1: Treat an obstacle cell as impassable
+
+**Architecture:** `architecture/05-building-block-view.md`, section 5.2 (Grid Rules); ADR-002
+
+### NAV-BE-002.1-S1: Forward move into an obstacle is a no-op
+
+**GIVEN**
+* A 5x4 map with an obstacle at `(1, 2)`
+* A rover state at `(1, 1)` facing `N`
+
+**WHEN**
+* The command `F` is applied
+
+**THEN**
+* The new state is at `(1, 1)` facing `N`
+
+## NAV-BE-002.2: Treat a cell outside the map as impassable
+
+**Architecture:** `architecture/05-building-block-view.md`, section 5.2 (Grid Rules); ADR-002
+
+### NAV-BE-002.2-S1: Forward move past the north boundary is a no-op
+
+**GIVEN**
+* A 5x4 map without obstacles
+* A rover state at `(4, 3)` facing `N`
+
+**WHEN**
+* The command `F` is applied
+
+**THEN**
+* The new state is at `(4, 3)` facing `N`
+
+## NAV-BE-002.3: Continue executing commands after a blocked forward move
+
+**Architecture:** `architecture/05-building-block-view.md`, section 5.2 (Command Executor); `architecture/06-runtime-view.md`, section 6.3; ADR-002
+
+### NAV-BE-002.3-S1: Commands after a blocked move are applied
+
+**GIVEN**
+* A mission value with a 5x4 map, an obstacle at `(1, 2)`, start `(1, 1)` facing `N` and commands `FFR`
+
+**WHEN**
+* `execute(mission)` is called
+
+**THEN**
+* The result value is cell `(1, 1)` with heading `E`
+* The mission value is unchanged
+
+### NAV-BE-002.3-S2: Blocked forward, turn, then forward moves
+
+**GIVEN**
+* A mission value with a 5x4 map, an obstacle at `(1, 2)`, start `(1, 1)` facing `N` and commands `FRF`
+
+**WHEN**
+* `execute(mission)` is called
+
+**THEN**
+* The result value is cell `(2, 1)` with heading `E`
+* The mission value is unchanged
+
+---
+
+## NAV-FE-002.1: Show the final position after blocked moves
+
+**Architecture:** `architecture/05-building-block-view.md`, section 5.1 (CLI Adapter); `architecture/03-system-scope-and-context.md`, section 3.2 (Result output)
+
+### NAV-FE-002.1-S1: Print the result JSON for a mission with blocked moves
+
+**GIVEN**
+* A mission file with a 5x4 map, an obstacle at `(1, 2)`, start `(1, 1)` facing `N` and commands `FFR`
+
+**WHEN**
+* The operator runs the CLI with the path to that file
+
+**THEN**
+* stdout contains exactly `{"x": 1, "y": 1, "heading": "E"}`
+* The exit code is 0
+
+---
+
+## Implementation Order
+
+1. No new INFRA (covered by NAV-INFRA-001.1 and NAV-INFRA-001.4)
+2. NAV-BE-002.1, NAV-BE-002.2, NAV-BE-002.3
+3. NAV-FE-002.1
+4. NAV-STORY-002 end to end (S1, S2, S3)
