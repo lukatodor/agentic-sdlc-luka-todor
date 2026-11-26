@@ -1,0 +1,36 @@
+@startuml sequence-http-mission
+!include <C4/C4_Sequence>
+
+title Runtime - Execute a Mission over HTTPS
+
+Person(operator, "Mission Operator")
+Container(client, "HTTP Client", "curl or similar")
+Container(api, "HTTP API", "Amazon API Gateway")
+Container(fn, "Lambda Adapter", "Python 3.12")
+Container(engine, "Navigation Engine", "Python 3.12")
+
+Rel(operator, client, "Uses")
+Rel(client, api, "POST mission JSON", "HTTPS")
+Rel(api, fn, "Invokes", "proxy event")
+Rel(fn, engine, "execute(mission)", "Python API")
+
+operator -> client : submit mission
+client -> api : POST /mission with mission JSON
+api -> fn : proxy event with JSON body
+fn -> fn : parse and validate request
+fn -> engine : execute(mission)
+engine -> engine : initialize rover state from mission
+loop each command, left to right
+  alt command is F and next cell is obstacle or outside map
+    engine -> engine : keep current cell (ADR-002)
+  else command is F and next cell is enterable
+    engine -> engine : move one cell forward
+  else command is L or R
+    engine -> engine : rotate heading in place
+  end
+end
+engine --> fn : final cell and heading
+fn --> api : 200 with result JSON
+api --> client : 200 with result JSON
+client --> operator : display final cell and heading
+@enduml

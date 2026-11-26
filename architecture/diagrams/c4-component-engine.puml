@@ -1,0 +1,21 @@
+@startuml c4-component-engine
+!include <C4/C4_Component>
+
+title Component Diagram - Navigation Engine
+
+Container(cli, "CLI Adapter", "Python 3.12", "Local entry point")
+Container(fn, "Lambda Adapter", "Python 3.12", "HTTP entry point")
+
+Container_Boundary(engine, "Navigation Engine") {
+  Component(model, "Mission Model", "Python value objects", "Map dimensions, obstacles, start cell, heading and commands")
+  Component(executor, "Command Executor", "Python", "Applies F, L and R in order and returns the final rover state")
+  Component(grid, "Grid Rules", "Python", "Answers whether the next cell is inside the map and obstacle-free (ADR-002)")
+  Component(state, "Rover State", "Python value object", "Current cell and heading, replaced by each command")
+}
+
+Rel(cli, executor, "Calls with a mission", "Python API")
+Rel(fn, executor, "Calls with a mission", "Python API")
+Rel(executor, model, "Reads")
+Rel(executor, state, "Transitions")
+Rel(executor, grid, "Checks next cell")
+@enduml
